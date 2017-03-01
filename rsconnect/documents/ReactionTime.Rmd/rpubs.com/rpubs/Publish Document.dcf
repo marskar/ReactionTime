@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/254786/0451f7b30f784d85a3a1cdc2ed723195
+bundleId: https://api.rpubs.com/api/v1/document/254786/0451f7b30f784d85a3a1cdc2ed723195
+url: http://rpubs.com/marskar/254786
+when: 1488392921.09156

@@ -1,0 +1,118 @@
+---
+title: "ReactionTime"
+author: "Martin Skarzynski"
+date: "March 1, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Data clean up
+
+## Convert xlsx to csv and read in data
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+#install.packages("rio")
+library(rio)
+convert("rt_acc_averages.xlsx", "dat.csv")
+df<-read.csv("dat.csv", header = FALSE, na.strings = c("",NA))
+```
+## Name columns using row 3
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+names(df) <- as.matrix(df[3, ])
+```
+## Fill in empty cells
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+#install.packages("tidyr")
+library(tidyr)
+df2<- fill(df, c(1,2))
+```
+## Remove rows and columns that are mostly empty
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+df3 <- df2[-which(rowMeans(is.na(df2)) > 0.51), ]
+df4 <- df3[, -which(colMeans(is.na(df3)) > 0.51)]
+```
+
+## Remove title rows
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+df5<-df4[!is.na(as.numeric(as.character(df4$diff))),]
+```
+## Save a tidy version of the dataset
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+write.csv(df5,"tidy.csv")
+df<-read.csv("tidy.csv", header = TRUE)
+```
+
+# Merge data
+
+## Merge Reaction Time and Accuracy parts of the datasets
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+dfRT <- df[which(df$Mean > 1000),]
+names(dfRT)[names(dfRT)=="Mean"] <- "MeanReactionTime"
+names(dfRT)[names(dfRT)=="Std..Error"] <- "ReactionTimeStandardError"
+dfAcc <- df[which(df$Mean < 1),]
+names(dfAcc)[names(dfAcc)=="Mean"] <- "MeanAccuracy"
+names(dfAcc)[names(dfAcc)=="Std..Error"] <- "AccuracyStandardError"
+dfAll<-cbind(dfRT,dfAcc[,5:6])
+dfAll<- dfAll[,-1]
+write.csv(dfAll,"merged.csv")
+```
+
+#Plot data
+## Plot Reaction Time
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+#install.packages("plotly")
+library(plotly)
+
+brt<-ggplot(dfAll, aes(x = group,y = MeanReactionTime)) + 
+  geom_boxplot() + 
+  geom_point(size = 2.5, aes(col=factor(reward), shape=factor(diff))) +
+  ylab("Reaction Time") +
+  theme(axis.line = element_line(colour = "black"), 
+        text = element_text(size=10, color = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        axis.title.x=element_blank(),
+        legend.position="bottom"
+  )
+png(filename="ReactionTime.png")
+plot(brt)
+dev.off()
+brt
+#install.packages("plotly")
+#library(plotly)
+pbrt<- ggplotly(brt)
+pbrt
+```
+
+## Plot Accuracy
+
+```{r cache=TRUE, message=FALSE, warning = FALSE, error = FALSE, echo = TRUE, eval = TRUE}
+bacc<-ggplot(dfAll, aes(x = group,y = MeanAccuracy)) + 
+  geom_boxplot() + 
+  geom_point(size = 2.5, aes(col=factor(reward), shape=factor(diff))) +
+  ylab("Accuracy") +
+  theme(axis.line = element_line(colour = "black"), 
+        text = element_text(size=10, color = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        axis.title.x=element_blank(),
+         legend.position="bottom"
+  )
+png(filename="Accuracy.png")
+plot(bacc)
+dev.off()
+bacc
+#install.packages("plotly")
+#library(plotly)
+pbacc<-ggplotly(bacc)
+pbacc
+
+```
+
+## Conclusions

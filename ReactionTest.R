@@ -1,46 +1,41 @@
 ## Download data file
 
-install.packages("compare")
-library(compare)
 ## Read in data and convert xlsx to csv 
-install.packages("rio")
-install.packages("xlsx")
-library(xlsx)
+#install.packages("rio")
 library(rio)
-getwd()
-setwd("/Users/skarzynskimw/Documents/")
 convert("rt_acc_averages.xlsx", "dat.csv")
-dat<-read.csv("dat.csv", header = FALSE, na.strings = c("",NA))
+df<-read.csv("dat.csv", header = FALSE, na.strings = c("",NA))
+?convert
+names(df) <- as.matrix(df[3, ])
 
-names(dat) <- as.matrix(dat[3, ])
+## Fill in empty cells
 
-
-
-install.packages("tidyr")
+#install.packages("tidyr")
 library(tidyr)
-dat2<- fill(dat, c(1,2))
+df2<- fill(df, c(1,2))
 
-dat3 <- dat2[-which(rowMeans(is.na(dat2)) > 0.50), ]
-dat4 <- dat3[, -which(colMeans(is.na(dat3)) > 0.50)]
+df3 <- df2[-which(rowMeans(is.na(df2)) > 0.50), ]
+df4 <- df3[, -which(colMeans(is.na(df3)) > 0.50)]
 
-dat5<-dat4[!is.na(as.numeric(as.character(dat4$diff))),]
-write.csv(dat5,"tidy.csv")
-dat<-read.csv("tidy.csv", header = TRUE)
+df5<-df4[!is.na(as.numeric(as.character(df4$diff))),]
+write.csv(df5,"tidy.csv")
+df<-read.csv("tidy.csv", header = TRUE)
 
-dfRT <- dat[which(dat$Mean > 1000),]
+dfRT <- df[which(df$Mean > 1000),]
 names(dfRT)[names(dfRT)=="Mean"] <- "MeanReactionTime"
 names(dfRT)[names(dfRT)=="Std..Error"] <- "ReactionTimeStandardError"
-dfAcc <- dat[which(dat$Mean < 1),]
+dfAcc <- df[which(df$Mean < 1),]
 names(dfAcc)[names(dfAcc)=="Mean"] <- "MeanAccuracy"
 names(dfAcc)[names(dfAcc)=="Std..Error"] <- "AccuracyStandardError"
 dfAll<-cbind(dfRT,dfAcc[,5:6])
 dfAll<- dfAll[,-1]
+write.csv(dfAll,"merged.csv")
 
 
 #install.packages("plotly")
-#library(plotly)
+library(plotly)
 
-brt<-ggplot(data = dfAll, aes(x = dfAll$group,y = dfAll$MeanReactionTime)) + 
+brt<-ggplot(dfAll, aes(x = group,y = MeanReactionTime)) + 
   geom_boxplot() + 
   geom_point(size = 2.5, aes(col=factor(reward), shape=factor(diff))) +
   ylab("Reaction Time") +
@@ -50,7 +45,7 @@ brt<-ggplot(data = dfAll, aes(x = dfAll$group,y = dfAll$MeanReactionTime)) +
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(),
-        axis.title.x=element_blank(),
+        axis.title.x=element_blank()
   )
 brt
 
@@ -59,7 +54,7 @@ brt
 brt<- ggplotly(brt)
 brt
 
-bacc<-ggplot(data = dfAll, aes(x = group,y = MeanAccuracy)) + 
+bacc<-ggplot(dfAll, aes(x = group,y = MeanAccuracy)) + 
   geom_boxplot() + 
   geom_point(size = 2.5, aes(col=factor(reward), shape=factor(diff))) +
   ylab("Reaction Time") +
