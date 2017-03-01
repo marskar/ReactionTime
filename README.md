@@ -4,9 +4,9 @@ The starting dataset was a mess, but small so it could have been easily cleaned 
 but I wanted to show how I can clean and merge a dataset in a reproducible manner
 and create interactive graphs for exploratory analysis.
 
-diff = difficulty (1=easy, 2=medium, 3=hard) /n
+diff = difficulty (1=easy, 2=medium, 3=hard)
 
-reward = 1 = no reward, 2 = reward /n
+reward = 1 = no reward, 2 = reward
 
 group = disorder type
 
